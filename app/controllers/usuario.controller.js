@@ -114,7 +114,7 @@ exports.delete = (req, res) => {
 };
 
 
-// Login - Busca por nombre de usuario e incluye en password_hash
+// Login - Busca por nombre de usuario e incluye en password_hash 
 exports.AccesoLogin = (req, res) => {
     const nombre_usuario = req.params.nombre_usuario;
 

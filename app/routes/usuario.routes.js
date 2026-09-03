@@ -9,3 +9,4 @@ module.exports = app => {
     router.delete("/delete/:id", usuarios.delete);
     app.use("/api/usuario", router);
 };
+
