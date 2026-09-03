@@ -33,7 +33,7 @@ exports.findAll = (req, res) => {
     const nombre_completo = req.query.nombre_completo;
     var condition = nombre_completo ? { nombre_completo: { [Op.iLike]: `%${nombre_completo}%` } } : null;
 
-    Usuario.findAll({ where: condition })
+    Cliente.findAll({ where: condition })
         .then(data => {
             res.send(data);
         })
@@ -116,10 +116,10 @@ exports.delete = (req, res) => {
 exports.AccesoLogin = (req, res) => {
     const nombre_usuario = req.params.nombre_usuario;
 
-    Usuario.findOne({ where: { nombre_usuario: nombre_usuario } })
+    Cliente.findOne({ where: { nombre_usuario: nombre_usuario } })
         .then(data => {
             if (!data) {
-                return res.status(404).send({ message: "CLiente no encontrado." });
+                return res.status(404).send({ message: "Cliente no encontrado." });
             }
             res.send(data);
         })
