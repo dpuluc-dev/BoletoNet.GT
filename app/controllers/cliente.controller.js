@@ -1,35 +1,34 @@
 const db = require("../models");
-const Usuario = db.usuario;
+const Cliente = db.cliente;
 const Op = db.Sequelize.Op;
 
 
-// Crear un usuario
+// Crear un cliente
 exports.create = (req, res) => {
-    const usuario = {
+    const cliente = {
         nombre_completo: req.body.nombre_completo,
         nombre_usuario: req.body.nombre_usuario,
         password_hash: req.body.password_hash,
         email: req.body.email,
         telefono: req.body.telefono,
         direccion: req.body.direccion,
-        rol: req.body.rol,
         fecha_creacion: req.body.fecha_creacion,
         status: req.body.status ? req.body.status : false
     }
 
-    Usuario.create(usuario)
+    Cliente.create(cliente)
         .then(data => {
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Se produjo un error al crear el usuario!"
+                message: err.message || "Se produjo un error al crear el cliente!"
             });
         });
 };
 
 
-// Listar todos los usuarios (con filtro opcional por nombre_completo)
+// Listar todos los clientes (con filtro opcional por nombre_completo)
 exports.findAll = (req, res) => {
     const nombre_completo = req.query.nombre_completo;
     var condition = nombre_completo ? { nombre_completo: { [Op.iLike]: `%${nombre_completo}%` } } : null;
@@ -40,94 +39,93 @@ exports.findAll = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Se produjo un error al recuperar los usuarios!"
+                message: err.message || "Se produjo un error al recuperar los clientes!"
             });
         });
 };
 
 
-// Obtener un usuario por id
+// Obtener un cliente por id
 exports.findOne = (req, res) => {
     const id = req.params.id;
 
-    Usuario.findByPk(id)
+    Cliente.findByPk(id)
         .then(data => {
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error al recuperar el usuario con id=" + id
+                message: "Error al recuperar el cliente con id=" + id
             });
         });
 };
 
 
-// Actualizar un usuario por id
+// Actualizar un cliente por id
 exports.update = (req, res) => {
     const id = req.params.id;
 
-    Usuario.update(req.body, {
+    Cliente.update(req.body, {
         where: { id: id }
     })
         .then(num => {
             if (num == 1) {
                 res.send({
-                    message: "El usuario se actualizó correctamente."
+                    message: "El cliente se actualizó correctamente."
                 });
             } else {
                 res.send({
-                    message: `No se puede actualizar el usuario con id=${id}`
+                    message: `No se puede actualizar el cliente con id=${id}`
                 });
             }
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error al actualizar el usuario con id=" + id
+                message: "Error al actualizar el cliente con id=" + id
             });
         });
 };
 
 
-// Eliminar un usuario por id
+// Eliminar un cliente por id
 exports.delete = (req, res) => {
     const id = req.params.id;
 
-    Usuario.destroy({
+    Cliente.destroy({
         where: { id: id }
     })
         .then(num => {
             if (num == 1) {
                 res.send({
-                    message: "El usuario se eliminó correctamente!"
+                    message: "El cliente se eliminó correctamente!"
                 });
             } else {
                 res.send({
-                    message: `No se puede eliminar el usuario con id=${id}`
+                    message: `No se puede eliminar el cliente con id=${id}`
                 });
             }
         })
         .catch(err => {
             res.status(500).send({
-                message: "No se pudo eliminar el usuario con id=" + id
+                message: "No se pudo eliminar el cliente con id=" + id
             });
         });
 };
 
 
-// Login - Busca por rol e incluye en password_hash 
 exports.AccesoLogin = (req, res) => {
-    const rol = req.params.rol;
+    const nombre_usuario = req.params.nombre_usuario;
 
-    Usuario.findOne({ where: { rol: rol } })
+    Usuario.findOne({ where: { nombre_usuario: nombre_usuario } })
         .then(data => {
             if (!data) {
-                return res.status(404).send({ message: "Rol no encontrado." });
+                return res.status(404).send({ message: "CLiente no encontrado." });
             }
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error al buscar el rol: " + err.message
+                message: "Error al buscar el cliente: " + err.message
             });
         });
 };
