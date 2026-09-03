@@ -3,7 +3,7 @@ module.exports = app => {
     var router = require("express").Router();
     router.post("/create/", clientes.create);
     router.get("/", clientes.findAll);
-    router.get("/AccesoLogin/:rol", clientes.AccesoLogin);
+    router.get("/AccesoLogin/:nombre_usuario", clientes.AccesoLogin);
     router.get("/:id", clientes.findOne);
     router.put("/update/:id", clientes.update);
     router.delete("/delete/:id", clientes.delete);
