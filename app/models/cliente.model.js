@@ -27,13 +27,18 @@ module.exports = (sequelize, Sequelize) => {
         },
 
         fecha_creacion: {
-            type: Sequelize.DATE
+            type: Sequelize.DATEONLY
         },
 
         status: {
             type: Sequelize.BOOLEAN,
             defaultValue: true
         }
+
+    }, {
+        timestamps: false
     });
+
     return Cliente;
+
 }
