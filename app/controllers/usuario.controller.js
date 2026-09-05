@@ -116,18 +116,18 @@ exports.delete = (req, res) => {
 
 // Login - Busca por rol e incluye en password_hash 
 exports.AccesoLogin = (req, res) => {
-    const rol = req.params.rol;
+    const nombre_usuario = req.params.nombre_usuario;
 
-    Usuario.findOne({ where: { rol: rol } })
+    Usuario.findOne({ where: { nombre_usuario: nombre_usuario } })
         .then(data => {
             if (!data) {
-                return res.status(404).send({ message: "Rol no encontrado." });
+                return res.status(404).send({ message: "Usuario no encontrado." });
             }
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error al buscar el rol: " + err.message
+                message: "Error al buscar el usuario: " + err.message
             });
         });
 };
