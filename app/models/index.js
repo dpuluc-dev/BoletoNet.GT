@@ -43,4 +43,4 @@ foreignKey: "id_localidad"
 });
 
 module.exports = db; 
-// Index terminados en las relaciones foraneas!
+// Index terminado en las relaciones foraneas!
