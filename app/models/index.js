@@ -22,4 +22,9 @@ db.sequelize = sequelize;
 db.usuario = require("./usuario.model.js")(sequelize, Sequelize);
 db.cliente = require("./cliente.model.js")(sequelize, Sequelize);
 db.artista = require("./artista.model.js")(sequelize, Sequelize);
+db.concierto = require("./concierto.model.js")(sequelize, Sequelize);
+// RELACIONES DE LLAVES FORÁNEAS
+// Un Artista puede tener muchos Conciertos
+db.artista.hasMany(db.concierto, { foreignKey: "idArtista" });
+db.concierto.belongsTo(db.artista, { foreignKey: "idArtista" });
 module.exports = db; 
