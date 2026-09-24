@@ -31,7 +31,8 @@ require("./app/routes/concierto.routes.js")(app);
 require("./app/routes/localidad.routes.js")(app);
 require("./app/routes/inventario.routes.js")(app);
 
-
+require("./app/routes/d_venta.routes.js")(app);
+require("./app/routes/venta.routes.js")(app);
 
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
