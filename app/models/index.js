@@ -23,7 +23,6 @@ db.inventario = require("./inventario.model.js")(sequelize, Sequelize);
 db.localidad = require("./localidad.model.js")(sequelize, Sequelize);
 db.usuario = require("./usuario.model.js")(sequelize, Sequelize);
 db.cliente = require("./cliente.model.js")(sequelize, Sequelize);
-
 db.artista = require("./artista.model.js")(sequelize, Sequelize);
 db.concierto = require("./concierto.model.js")(sequelize, Sequelize);
 // RELACIONES DE LLAVES FORÁNEAS
@@ -54,5 +53,7 @@ db.d_venta.belongsTo(db.venta, { foreignKey: "id_venta" });
 // RELACIÓN DETALLE_VENTA - INVENTARIO
 db.inventario.hasMany(db.d_venta, { foreignKey: "id_inventario" });
 db.d_venta.belongsTo(db.inventario, { foreignKey: "id_inventario" });
+
+db.estado = require("./estado.model.js")(sequelize, Sequelize);
 
 module.exports = db; 

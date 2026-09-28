@@ -34,7 +34,10 @@ require("./app/routes/inventario.routes.js")(app);
 require("./app/routes/d_venta.routes.js")(app);
 require("./app/routes/venta.routes.js")(app);
 
+require("./app/routes/estado.routes.js")(app);
+
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
+
