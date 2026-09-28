@@ -7,6 +7,7 @@ const Op = db.Sequelize.Op;
 exports.create = (req, res) => {
     const estado = {
         estado: req.body.estado,
+        fecha_creacion: req.body.fecha_creacion,
         status: req.body.status ? req.body.status : true
     }
 
