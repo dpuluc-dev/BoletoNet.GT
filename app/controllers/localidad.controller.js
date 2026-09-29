@@ -5,9 +5,7 @@ const Localidad = db.localidad;
 exports.create = (req, res) => {
     const localidad = {
         nombre: req.body.nombre,
-        vip: req.body.vip,
-        general_norte: req.body.general_norte,
-        platea: req.body.platea
+        status: req.body.status ? req.body.status : true
     };
 
     Localidad.create(localidad)
@@ -107,4 +105,4 @@ exports.delete = (req, res) => {
                 message: "Error al eliminar la localidad con id=" + id
             });
         });
-};
+}; 

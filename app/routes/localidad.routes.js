@@ -1,10 +1,10 @@
 module.exports = app => {
-    const localidad = require("../controllers/localidad.controller.js");
+    const localidades = require("../controllers/localidad.controller.js");
     var router = require("express").Router();
-    router.post("/create", localidad.create);
-    router.get("/", localidad.findAll);
-    router.get("/:id", localidad.findOne);
-    router.put("/update/:id", localidad.update);
-    router.delete("/delete/:id", localidad.delete);
+    router.post("/create", localidades.create);
+    router.get("/", localidades.findAll);
+    router.get("/:id", localidades.findOne);
+    router.put("/update/:id", localidades.update);
+    router.delete("/delete/:id", localidades.delete);
     app.use("/api/localidad", router);
-};
+}; 

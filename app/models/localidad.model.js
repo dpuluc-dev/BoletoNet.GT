@@ -11,17 +11,9 @@ module.exports = (sequelize, Sequelize) => {
         nombre: {
             type: Sequelize.STRING
         },
-
-        vip: {
-            type: Sequelize.DECIMAL(10, 2)
-        },
-
-        general_norte: {
-            type: Sequelize.DECIMAL(10, 2)
-        },
-
-        platea: {
-            type: Sequelize.DECIMAL(10, 2)
+        status: {
+            type: Sequelize.BOOLEAN,
+            toDefaultValue: true
         }
 
     }, {
