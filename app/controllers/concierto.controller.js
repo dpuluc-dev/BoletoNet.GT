@@ -12,6 +12,7 @@ exports.create = async (req, res) => {
 
         const concierto = await Concierto.create({
             idArtista: req.body.idArtista,
+            artista: req.body.artista,
             titulo_evento: req.body.titulo_evento,
             descripcion: req.body.descripcion,
             fecha_concierto: req.body.fecha_concierto,

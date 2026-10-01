@@ -4,6 +4,9 @@ module.exports = (sequelize, Sequelize) => {
         idArtista: {
             type: Sequelize.INTEGER,
         },
+        artista: {
+            type: Sequelize.STRING
+        },
         titulo_evento: {
             type: Sequelize.STRING
         },
