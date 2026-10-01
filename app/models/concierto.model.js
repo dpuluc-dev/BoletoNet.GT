@@ -16,6 +16,9 @@ module.exports = (sequelize, Sequelize) => {
         recinto: {
             type: Sequelize.STRING,
         },
+        hora: {
+            type: Sequelize.STRING
+        },
         estado: {
             type: Sequelize.STRING,
         },
@@ -34,4 +37,4 @@ module.exports = (sequelize, Sequelize) => {
 
     return Concierto;
 
-}
+} 

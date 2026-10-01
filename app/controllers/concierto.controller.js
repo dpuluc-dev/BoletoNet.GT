@@ -16,6 +16,7 @@ exports.create = async (req, res) => {
             descripcion: req.body.descripcion,
             fecha_concierto: req.body.fecha_concierto,
             recinto: req.body.recinto,
+            hora: req.body.hora,
             estado: req.body.estado,
             capacidad_total: req.body.capacidad_total,
             fecha_inicio_venta: req.body.fecha_inicio_venta,
