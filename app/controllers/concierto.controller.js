@@ -65,6 +65,21 @@ exports.findOne = (req, res) => {
         });
 };
 
+// Buscar un concierto por artista
+exports.findOne = (req, res) => {
+    const artista = req.params.artista;
+
+    Concierto.findOne({ where: { artista: artista } })
+        .then(data => {
+            res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error al recuperar el concierto del artista " + artista
+            });
+        });
+};
+
 // Actualizar un concierto por id
 exports.update = (req, res) => {
     const id = req.params.id;
