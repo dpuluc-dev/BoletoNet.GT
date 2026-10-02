@@ -65,17 +65,17 @@ exports.findOne = (req, res) => {
         });
 };
 
-// Buscar un concierto por artista
-exports.findOne = (req, res) => {
+// Buscar todos los conciertos de un artista
+exports.findByArtista = (req, res) => {
     const artista = req.params.artista;
 
-    Concierto.findOne({ where: { artista: artista } })
+    Concierto.findAll({ where: { artista: artista } })
         .then(data => {
-            res.send(data);
+            res.send(data); // siempre un arreglo, vacío si no hay resultados
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error al recuperar el concierto del artista " + artista
+                message: "Error al recuperar los conciertos del artista " + artista
             });
         });
 };

@@ -13,7 +13,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = require("./app/models");
-db.sequelize.sync({ alter: true });
+db.sequelize.sync({ alter: true })
+    .then(() => {
+        console.log("Base de datos sincronizada correctamente");
+    })
+    .catch(err => {
+        console.log("ERROR AL SINCRONIZAR:");
+        console.log(err);
+    });
 
 
 
