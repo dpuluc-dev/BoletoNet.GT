@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -13,14 +14,27 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = require("./app/models");
-db.sequelize.sync({ alter: true })
-    .then(() => {
+
+async function iniciarBaseDatos() {
+    try {
+        await db.sequelize.sync();
+
+        await db.sequelize.query(`
+            ALTER TABLE usuarios
+            ADD COLUMN IF NOT EXISTS codigo_recuperacion_hash VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS codigo_recuperacion_expira TIMESTAMP WITH TIME ZONE,
+            ADD COLUMN IF NOT EXISTS intentos_recuperacion INTEGER NOT NULL DEFAULT 0;
+        `);
+
         console.log("Base de datos sincronizada correctamente");
-    })
-    .catch(err => {
-        console.log("ERROR AL SINCRONIZAR:");
-        console.log(err);
-    });
+        console.log("Columnas de recuperación verificadas correctamente");
+
+    } catch (err) {
+        console.error("ERROR AL INICIAR LA BASE DE DATOS:", err);
+        process.exit(1);
+    }
+}
+
 
 
 
@@ -44,7 +58,9 @@ require("./app/routes/venta.routes.js")(app);
 require("./app/routes/estado.routes.js")(app);
 
 const PORT = process.env.PORT || 8081;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
-});
 
+iniciarBaseDatos().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}.`);
+    });
+});
