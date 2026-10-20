@@ -1,6 +1,9 @@
 const db = require("../models");
 const Usuario = db.usuario;
 const Op = db.Sequelize.Op;
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const bcrypt = require("bcryptjs");
 
 
 // Crear un usuario
@@ -34,7 +37,10 @@ exports.findAll = (req, res) => {
     const nombre_completo = req.query.nombre_completo;
     var condition = nombre_completo ? { nombre_completo: { [Op.iLike]: `%${nombre_completo}%` } } : null;
 
-    Usuario.findAll({ where: condition })
+    Usuario.findAll({
+    attributes: { exclude: ["password_hash"] },
+    where: condition
+})
         .then(data => {
             res.send(data);
         })
@@ -50,7 +56,9 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
     const id = req.params.id;
 
-    Usuario.findByPk(id)
+    Usuario.findByPk(id, {
+    attributes: { exclude: ["password_hash"] }
+})
         .then(data => {
             res.send(data);
         })
@@ -130,4 +138,87 @@ exports.AccesoLogin = (req, res) => {
                 message: "Error al buscar el usuario: " + err.message
             });
         });
+    };
+
+        
+exports.solicitarRecuperacion = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email || !email.trim()) {
+            return res.status(400).send({
+                message: "Debes ingresar tu correo electrónico."
+            });
+        }
+
+        const usuario = await Usuario.findOne({
+            where: {
+                email: email.trim().toLowerCase()
+            }
+        });
+        console.log("PASO 1: Búsqueda de usuario terminada");
+        console.log("PASO 2: Usuario encontrado:", !!usuario);
+
+        // Respuesta genérica para no revelar si existe el correo.
+        if (!usuario) {
+            return res.send({
+                message: "Si el correo está registrado, recibirás instrucciones."
+            });
+        }
+
+        // Generar código de recuperación de 6 dígitos.
+        const codigo = crypto.randomInt(100000, 1000000).toString();
+
+        // Guardar solamente el hash del código.
+        const codigoHash = await bcrypt.hash(codigo, 10);
+
+        await usuario.update({
+            codigo_recuperacion_hash: codigoHash,
+            codigo_recuperacion_expira: new Date(Date.now() + 10 * 60 * 1000),
+            intentos_recuperacion: 0
+        });
+        console.log("PASO 3: Código de recuperación guardado");
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT || 587),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+        console.log("Configuración SMTP:");
+console.log("HOST:", process.env.SMTP_HOST);
+console.log("PORT:", process.env.SMTP_PORT || 587);
+console.log("USER configurado:", !!process.env.SMTP_USER);
+console.log("PASS configurado:", !!process.env.SMTP_PASS);
+console.log("FROM configurado:", !!process.env.SMTP_FROM);
+
+       const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: usuario.email,
+    subject: "Recuperación de contraseña - BoletoNet.GT",
+    text: `Tu código de recuperación es: ${codigo}
+
+Vence en 10 minutos. Si no solicitaste este código,
+puedes ignorar este correo.`
+});
+
+console.log("Correo aceptado por el servidor SMTP.");
+console.log("Message ID:", info.messageId);
+console.log("Destinatario aceptado:", info.accepted);
+console.log("Destinatario rechazado:", info.rejected);
+
+        return res.send({
+            message: "Si el correo está registrado, recibirás instrucciones."
+        });
+
+    } catch (error) {
+        console.error("Error en recuperación:", error.message);
+
+        return res.status(500).send({
+            message: "No se pudo procesar la solicitud. Intenta más tarde."
+        });
+    }
 };

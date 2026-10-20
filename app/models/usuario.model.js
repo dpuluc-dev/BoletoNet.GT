@@ -36,8 +36,23 @@ module.exports = (sequelize, Sequelize) => {
 
         status: {
             type: Sequelize.BOOLEAN
-        }
+        },
+        
+        codigo_recuperacion_hash: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
 
+        codigo_recuperacion_expira: {
+            type: Sequelize.DATE,
+            allowNull: true
+        },
+
+        intentos_recuperacion: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        }
     }, {
         timestamps: false
     });
