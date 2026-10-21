@@ -2,7 +2,6 @@ const db = require("../models");
 const Usuario = db.usuario;
 const Op = db.Sequelize.Op;
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 
 
@@ -179,36 +178,65 @@ exports.solicitarRecuperacion = async (req, res) => {
         });
         console.log("PASO 3: Código de recuperación guardado");
 
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT || 587),
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
+        
+        console.log("Enviando correo mediante la API de Brevo...");
+
+        if (!process.env.BREVO_API_KEY) {
+            throw new Error("Falta configurar BREVO_API_KEY.");
+        }
+
+        if (!process.env.SMTP_FROM) {
+            throw new Error("Falta configurar SMTP_FROM.");
+        }
+
+        const respuestaCorreo = await fetch(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                method: "POST",
+                headers: {
+                    "accept": "application/json",
+                    "api-key": process.env.BREVO_API_KEY,
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    sender: {
+                        name: "BoletoNet.GT",
+                        email: process.env.SMTP_FROM
+                    },
+                    to: [
+                        {
+                            email: usuario.email
+                        }
+                    ],
+                    subject: "Recuperación de contraseña - BoletoNet.GT",
+                    textContent: `Tu código de recuperación es: ${codigo}
+
+Vence en 10 minutos. Si no solicitaste este código, puedes ignorar este correo.`
+                })
             }
-        });
-        console.log("Configuración SMTP:");
-console.log("HOST:", process.env.SMTP_HOST);
-console.log("PORT:", process.env.SMTP_PORT || 587);
-console.log("USER configurado:", !!process.env.SMTP_USER);
-console.log("PASS configurado:", !!process.env.SMTP_PASS);
-console.log("FROM configurado:", !!process.env.SMTP_FROM);
+        );
 
-       const info = await transporter.sendMail({
-    from: process.env.SMTP_FROM,
-    to: usuario.email,
-    subject: "Recuperación de contraseña - BoletoNet.GT",
-    text: `Tu código de recuperación es: ${codigo}
+        if (!respuestaCorreo.ok) {
+            const detalle = await respuestaCorreo.text();
 
-Vence en 10 minutos. Si no solicitaste este código,
-puedes ignorar este correo.`
-});
+            console.error(
+                "Error de Brevo:",
+                respuestaCorreo.status,
+                detalle
+            );
 
-console.log("Correo aceptado por el servidor SMTP.");
-console.log("Message ID:", info.messageId);
-console.log("Destinatario aceptado:", info.accepted);
-console.log("Destinatario rechazado:", info.rejected);
+            throw new Error(
+                `Brevo rechazó el envío. Código HTTP: ${respuestaCorreo.status}`
+            );
+        }
+
+        const resultadoCorreo = await respuestaCorreo.json();
+
+        console.log(
+            "Solicitud aceptada por Brevo. Message ID:",
+            resultadoCorreo.messageId
+        );
+
 
         return res.send({
             message: "Si el correo está registrado, recibirás instrucciones."
