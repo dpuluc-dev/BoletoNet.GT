@@ -16,11 +16,15 @@ module.exports = app => {
      usuarios.solicitarRecuperacion
     );
 
-    //router.post(
-      //  "/recuperacion/verificar",
-  //      usuarios.verificarRecuperacion
-//    );
-
+    router.post(
+    "/recuperacion/verificar",
+     usuarios .verificarRecuperacion
+     );
+     
+    router.post(
+    "/recuperacion/restablecer",
+    usuarios.restablecerContrasena
+    );
     app.use("/api/usuario", router);
 };
 

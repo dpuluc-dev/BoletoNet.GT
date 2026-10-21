@@ -250,3 +250,183 @@ Vence en 10 minutos. Si no solicitaste este código, puedes ignorar este correo.
         });
     }
 };
+exports.verificarRecuperacion = async (req, res) => {
+    try {
+        const { email, codigo } = req.body;
+
+        if (!email || !codigo) {
+            return res.status(400).send({
+                message: "Debes ingresar el correo y el código."
+            });
+        }
+
+        if (!/^\d{6}$/.test(String(codigo))) {
+            return res.status(400).send({
+                message: "El código debe tener 6 dígitos."
+            });
+        }
+
+        const usuario = await Usuario.findOne({
+            where: {
+                email: email.trim().toLowerCase()
+            }
+        });
+
+        if (!usuario || !usuario.codigo_recuperacion_hash) {
+            return res.status(400).send({
+                message: "Código inválido o vencido."
+            });
+        }
+
+        if (
+            !usuario.codigo_recuperacion_expira ||
+            new Date(usuario.codigo_recuperacion_expira) <= new Date()
+        ) {
+            await usuario.update({
+                codigo_recuperacion_hash: null,
+                codigo_recuperacion_expira: null,
+                intentos_recuperacion: 0
+            });
+
+            return res.status(400).send({
+                message: "El código venció. Solicita uno nuevo."
+            });
+        }
+
+        if (usuario.intentos_recuperacion >= 5) {
+            await usuario.update({
+                codigo_recuperacion_hash: null,
+                codigo_recuperacion_expira: null,
+                intentos_recuperacion: 0
+            });
+
+            return res.status(429).send({
+                message: "Superaste el límite de intentos. Solicita un código nuevo."
+            });
+        }
+
+        const codigoCorrecto = await bcrypt.compare(
+            String(codigo),
+            usuario.codigo_recuperacion_hash
+        );
+
+        if (!codigoCorrecto) {
+            await usuario.increment("intentos_recuperacion");
+
+            return res.status(400).send({
+                message: "Código incorrecto."
+            });
+        }
+
+        return res.send({
+            message: "Código verificado correctamente."
+        });
+
+    } catch (error) {
+        console.error("Error verificando recuperación:", error.message);
+
+        return res.status(500).send({
+            message: "No se pudo verificar el código."
+        });
+    }
+
+};
+
+exports.restablecerContrasena = async (req, res) => {
+    try {
+        const { email, codigo, nuevaContrasena } = req.body;
+
+        if (!email || !codigo || !nuevaContrasena) {
+            return res.status(400).send({
+                message: "Debes ingresar correo, código y nueva contraseña."
+            });
+        }
+
+        if (!/^\d{6}$/.test(String(codigo))) {
+            return res.status(400).send({
+                message: "El código debe tener 6 dígitos."
+            });
+        }
+
+        if (String(nuevaContrasena).length < 8) {
+            return res.status(400).send({
+                message: "La contraseña debe tener al menos 8 caracteres."
+            });
+        }
+
+        const usuario = await Usuario.findOne({
+            where: {
+                email: email.trim().toLowerCase()
+            }
+        });
+
+        if (!usuario || !usuario.codigo_recuperacion_hash) {
+            return res.status(400).send({
+                message: "Código inválido o vencido."
+            });
+        }
+
+        if (
+            !usuario.codigo_recuperacion_expira ||
+            new Date(usuario.codigo_recuperacion_expira) <= new Date()
+        ) {
+            await usuario.update({
+                codigo_recuperacion_hash: null,
+                codigo_recuperacion_expira: null,
+                intentos_recuperacion: 0
+            });
+
+            return res.status(400).send({
+                message: "El código venció. Solicita uno nuevo."
+            });
+        }
+
+        if (usuario.intentos_recuperacion >= 5) {
+            await usuario.update({
+                codigo_recuperacion_hash: null,
+                codigo_recuperacion_expira: null,
+                intentos_recuperacion: 0
+            });
+
+            return res.status(429).send({
+                message: "Superaste el límite. Solicita un código nuevo."
+            });
+        }
+
+        const codigoCorrecto = await bcrypt.compare(
+            String(codigo),
+            usuario.codigo_recuperacion_hash
+        );
+
+        if (!codigoCorrecto) {
+            await usuario.increment("intentos_recuperacion");
+
+            return res.status(400).send({
+                message: "Código incorrecto."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(
+            String(nuevaContrasena),
+            10
+        );
+
+        await usuario.update({
+            password_hash: passwordHash,
+            codigo_recuperacion_hash: null,
+            codigo_recuperacion_expira: null,
+            intentos_recuperacion: 0
+        });
+
+        return res.send({
+            message: "Contraseña restablecida correctamente."
+        });
+
+    } catch (error) {
+        console.error("Error restableciendo contraseña:", error.message);
+
+        return res.status(500).send({
+            message: "No se pudo restablecer la contraseña."
+        });
+    }
+};
