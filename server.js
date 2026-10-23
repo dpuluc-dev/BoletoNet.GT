@@ -19,12 +19,26 @@ async function iniciarBaseDatos() {
     try {
         await db.sequelize.sync();
 
-        await db.sequelize.query(`
-            ALTER TABLE usuarios
-            ADD COLUMN IF NOT EXISTS codigo_recuperacion_hash VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS codigo_recuperacion_expira TIMESTAMP WITH TIME ZONE,
-            ADD COLUMN IF NOT EXISTS intentos_recuperacion INTEGER NOT NULL DEFAULT 0;
-        `);
+       await db.sequelize.query(`
+    ALTER TABLE public.usuarios
+    ADD COLUMN IF NOT EXISTS codigo_recuperacion_hash VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS codigo_recuperacion_expira TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS intentos_recuperacion INTEGER NOT NULL DEFAULT 0;
+`);
+
+const [columnas] = await db.sequelize.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'usuarios'
+      AND column_name IN (
+          'codigo_recuperacion_hash',
+          'codigo_recuperacion_expira',
+          'intentos_recuperacion'
+      );
+`);
+
+console.log("Columnas de recuperación encontradas:", columnas);
 
         console.log("Base de datos sincronizada correctamente");
         console.log("Columnas de recuperación verificadas correctamente");
