@@ -53,10 +53,11 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false,
             defaultValue: 0
         }
-    }, {
+        }, {
+        tableName: "usuarios",
+        schema: "public",
         timestamps: false
     });
-
     return Usuario;
 
 }
