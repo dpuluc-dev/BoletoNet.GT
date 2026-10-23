@@ -6,29 +6,51 @@ const bcrypt = require("bcryptjs");
 
 
 // Crear un usuario
-exports.create = (req, res) => {
-    const usuario = {
-        nombre_completo: req.body.nombre_completo,
-        nombre_usuario: req.body.nombre_usuario,
-        password_hash: req.body.password_hash,
-        email: req.body.email,
-        telefono: req.body.telefono,
-        direccion: req.body.direccion,
-        rol: req.body.rol,
-        fecha_creacion: req.body.fecha_creacion,
-        status: req.body.status ? req.body.status : false
-    }
 
-    Usuario.create(usuario)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Se produjo un error al crear el usuario!"
+exports.create = async (req, res) => {
+    try {
+        const passwordPlano = req.body.password_hash;
+
+        if (!passwordPlano || !String(passwordPlano).trim()) {
+            return res.status(400).send({
+                message: "La contraseña es obligatoria."
             });
+        }
+
+        const passwordHash = await bcrypt.hash(
+            String(passwordPlano),
+            12
+        );
+
+        const usuario = {
+            nombre_completo: req.body.nombre_completo,
+            nombre_usuario: req.body.nombre_usuario,
+            password_hash: passwordHash,
+            email: req.body.email,
+            telefono: req.body.telefono,
+            direccion: req.body.direccion,
+            rol: req.body.rol,
+            fecha_creacion: req.body.fecha_creacion,
+            status: req.body.status ? req.body.status : false
+        };
+
+        const data = await Usuario.create(usuario);
+
+        const resultado = data.toJSON();
+        delete resultado.password_hash;
+
+        return res.status(201).send(resultado);
+
+    } catch (err) {
+        console.error("Error al crear usuario:", err.message);
+
+        return res.status(500).send({
+            message: err.message ||
+                "Se produjo un error al crear el usuario."
         });
+    }
 };
+
 
 
 // Listar todos los usuarios (con filtro opcional por nombre_completo)
@@ -70,28 +92,44 @@ exports.findOne = (req, res) => {
 
 
 // Actualizar un usuario por id
-exports.update = (req, res) => {
-    const id = req.params.id;
 
-    Usuario.update(req.body, {
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "El usuario se actualizó correctamente."
-                });
-            } else {
-                res.send({
-                    message: `No se puede actualizar el usuario con id=${id}`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error al actualizar el usuario con id=" + id
-            });
+exports.update = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const cambios = { ...req.body };
+
+        // Si se envía una contraseña, cifrarla antes de guardarla.
+        if (cambios.password_hash) {
+            cambios.password_hash = await bcrypt.hash(
+                String(cambios.password_hash),
+                12
+            );
+        } else {
+            // No modificar la contraseña si no se envió una nueva.
+            delete cambios.password_hash;
+        }
+
+        const [num] = await Usuario.update(cambios, {
+            where: { id: id }
         });
+
+        if (num === 1) {
+            return res.send({
+                message: "El usuario se actualizó correctamente."
+            });
+        }
+
+        return res.status(404).send({
+            message: `No se encontró el usuario con id=${id}.`
+        });
+
+    } catch (err) {
+        console.error("Error al actualizar usuario:", err.message);
+
+        return res.status(500).send({
+            message: "Error al actualizar el usuario."
+        });
+    }
 };
 
 
@@ -121,24 +159,53 @@ exports.delete = (req, res) => {
 };
 
 
-// Login - Busca por rol e incluye en password_hash 
-exports.AccesoLogin = (req, res) => {
-    const nombre_usuario = req.params.nombre_usuario;
 
-    Usuario.findOne({ where: { nombre_usuario: nombre_usuario } })
-        .then(data => {
-            if (!data) {
-                return res.status(404).send({ message: "Usuario no encontrado." });
-            }
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error al buscar el usuario: " + err.message
+// Login: valida el usuario y la contraseña con bcrypt
+exports.AccesoLogin = async (req, res) => {
+    try {
+        const nombre_usuario = req.params.nombre_usuario;
+        const password = req.query.password;
+
+        if (!password) {
+            return res.status(400).send({
+                message: "Debes ingresar la contraseña."
             });
-        });
-    };
+        }
 
+        const usuario = await Usuario.findOne({
+            where: { nombre_usuario: nombre_usuario }
+        });
+
+        if (!usuario) {
+            return res.status(401).send({
+                message: "Usuario o contraseña incorrectos."
+            });
+        }
+
+        const passwordValida = await bcrypt.compare(
+            password,
+            usuario.password_hash
+        );
+
+        if (!passwordValida) {
+            return res.status(401).send({
+                message: "Usuario o contraseña incorrectos."
+            });
+        }
+
+        const resultado = usuario.toJSON();
+        delete resultado.password_hash;
+
+        return res.status(200).send(resultado);
+
+    } catch (error) {
+        console.error("Error en AccesoLogin:", error.message);
+
+        return res.status(500).send({
+            message: "Error interno al iniciar sesión."
+        });
+    }
+};
         
 exports.solicitarRecuperacion = async (req, res) => {
     try {
