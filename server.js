@@ -18,6 +18,22 @@ const db = require("./app/models");
 async function iniciarBaseDatos() {
     try {
         await db.sequelize.sync();
+        const [diagnostico] = await db.sequelize.query(`
+    SELECT
+        current_database() AS base_datos,
+        current_schema() AS esquema,
+        current_user AS usuario_bd,
+        to_regclass('public.usuarios') AS tabla_usuarios,
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'usuarios'
+              AND column_name = 'codigo_recuperacion_hash'
+        ) AS existe_columna_recuperacion;
+`);
+
+console.log("DIAGNOSTICO DE BASE DE DATOS:", diagnostico);
 
        await db.sequelize.query(`
     ALTER TABLE public.usuarios
