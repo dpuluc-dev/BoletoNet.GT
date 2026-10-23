@@ -199,14 +199,13 @@ exports.AccesoLogin = async (req, res) => {
         return res.status(200).send(resultado);
 
     } catch (error) {
-        console.error("Error en AccesoLogin:", error.message);
+    console.error("Error en AccesoLogin:", error);
 
-        return res.status(500).send({
-            message: "Error interno al iniciar sesión."
-        });
-    }
-};
-        
+    return res.status(500).send({
+        message: "Error interno al iniciar sesión."
+    });
+  }
+};      
 exports.solicitarRecuperacion = async (req, res) => {
     try {
         const { email } = req.body;
