@@ -173,8 +173,15 @@ exports.AccesoLogin = async (req, res) => {
         }
 
         const usuario = await Usuario.findOne({
-            where: { nombre_usuario: nombre_usuario }
-        });
+            where: { nombre_usuario: nombre_usuario },
+               attributes: {
+        exclude: [
+            "codigo_recuperacion_hash",
+            "codigo_recuperacion_expira",
+            "intentos_recuperacion"
+        ]
+    }
+ });
 
         if (!usuario) {
             return res.status(401).send({
