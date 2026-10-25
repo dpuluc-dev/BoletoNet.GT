@@ -35,12 +35,17 @@ async function iniciarBaseDatos() {
 
 console.log("DIAGNOSTICO DE BASE DE DATOS:", diagnostico);
 
-       await db.sequelize.query(`
+       
+console.log("Agregando columnas de recuperación...");
+
+await db.sequelize.query(`
     ALTER TABLE public.usuarios
     ADD COLUMN IF NOT EXISTS codigo_recuperacion_hash VARCHAR(255),
     ADD COLUMN IF NOT EXISTS codigo_recuperacion_expira TIMESTAMP WITH TIME ZONE,
     ADD COLUMN IF NOT EXISTS intentos_recuperacion INTEGER NOT NULL DEFAULT 0;
 `);
+
+console.log("ALTER TABLE ejecutado correctamente.");
 
 const [columnas] = await db.sequelize.query(`
     SELECT column_name
@@ -51,10 +56,18 @@ const [columnas] = await db.sequelize.query(`
           'codigo_recuperacion_hash',
           'codigo_recuperacion_expira',
           'intentos_recuperacion'
-      );
+      )
+    ORDER BY column_name;
 `);
 
-console.log("Columnas de recuperación encontradas:", columnas);
+if (columnas.length !== 3) {
+    throw new Error(
+        "No se encontraron las tres columnas de recuperación."
+    );
+}
+
+console.log("Las tres columnas de recuperación existen.");
+
 
         console.log("Base de datos sincronizada correctamente");
         console.log("Columnas de recuperación verificadas correctamente");
@@ -64,9 +77,6 @@ console.log("Columnas de recuperación encontradas:", columnas);
         process.exit(1);
     }
 }
-
-
-
 
 app.get("/", (req, res) => {
     res.json({ message: "API funcionando correctamente!" });
