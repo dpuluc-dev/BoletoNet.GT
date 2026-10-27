@@ -239,6 +239,7 @@ exports.solicitarRecuperacion = async (req, res) => {
 `);
 
 console.log("DIAGNOSTICO RECUPERACION:", diagnostico);
+console.log("CONTROLADOR NUEVO EJECUTADO");
         const usuario = await Usuario.findOne({
             where: {
                 email: email.trim().toLowerCase()
