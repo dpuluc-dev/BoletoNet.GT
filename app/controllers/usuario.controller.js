@@ -223,6 +223,22 @@ exports.solicitarRecuperacion = async (req, res) => {
             });
         }
 
+        const [diagnostico] = await Usuario.sequelize.query(`
+    SELECT
+        current_database() AS base_datos,
+        current_schema() AS esquema,
+        current_user AS usuario_bd,
+        to_regclass('public.usuarios') AS tabla_usuarios,
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'usuarios'
+              AND column_name = 'codigo_recuperacion_hash'
+        ) AS existe_columna
+`);
+
+console.log("DIAGNOSTICO RECUPERACION:", diagnostico);
         const usuario = await Usuario.findOne({
             where: {
                 email: email.trim().toLowerCase()
